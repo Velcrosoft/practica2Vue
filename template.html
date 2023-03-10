@@ -12,8 +12,10 @@
         integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3"
         crossorigin="anonymous"></script>
         <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
         <script src="menuComponent.js"></script>
         <script src="piePaginaComponent.js"></script>
+        <script src="productoComponent.js"></script>
         <style>
             .color-box {
                 width: 40px;
@@ -67,37 +69,36 @@
 
     <item_menu></item_menu>
     
-    <div class="container">
+    <div class="container" v-for="p in listaProductos">
         <div class="row">
-            <h3>{{ producto.nombre }}</h3>
+            <h3>{{ p.nombre }}</h3>
         </div>
         <div class="row">
             <div class="col-12 col-sm-6 col-md-4 ">
-                <img v-bind:src="producto.imagen"
+                <img v-bind:src="p.imagen"
                     alt="" width="100%">
             </div>
             <div class="col-12 col-sm-6  col-md-8">
-                <h6>{{ producto.descripcion }}</h6>
+                <h6>{{ p.descripción }}</h6>
                 <div class="p-3 mb-2 text-white" v-bind:style="configuracionPagina.precioEstilos">
-                    Precio: {{ producto.precio }} BOB
+                    Precio: {{ p.precio }} BOB
                 </div>
                 <h5>Color</h5>
                 <div>
-                    <div class="color-box clic" v-on:click="setColor(value)"  v-for="value in producto.colores" v-bind:style=`background-color:${value}` ></div>
+                    <div class="color-box clic" v-on:click="setColor(value)"  v-for="value in p.colores" v-bind:style=`background-color:${value}` ></div>
 
                 </div>
                 <h5>Cantidad</h5>
                 <div class="quantity">
-                    <button v-on:click="decrementar">-</button> <div>{{ pedido.cantidad }}</div> <button v-on:click="incrementar">+</button>
+                    <button v-on:click="decrementar">-</button> <div>{{ p.cantidad }}</div> <button v-on:click="incrementar">+</button>
                 </div>
                 <div class="buy-box">
-                    <button type="button" v-on:click="comprar(producto.id, pedido.cantidad)" class="btn btn-primary" :disabled="desabilitar">Comprar</button>
+                    <button type="button" v-on:click="comprar(producto.id, p.cantidad)" class="btn btn-primary" :disabled="desabilitar">Comprar</button>
                 </div>
             </div>
         </div>
+        
     </div>
-
-
 
     <div class="container ">
 
@@ -105,7 +106,7 @@
             <h4>Productos relacionados</h4>
         </div>
         <div class="row">
-            <div class="col" v-for="value in productosRelacionados">
+            <div class="col" v-for="value in listaProductos">
                 <div class="card" style="width: 18rem;">
                     <h5 class="card-title">{{value.nombre}}</h5>
                     <img v-bind:src="value.imagen" alt="" width="100%">
@@ -124,8 +125,6 @@
         
     </div>
 
-
-    <!--<footer v-bind:style=`background-color:${configuracionPagina.footerColor}`>-->
     <item_piepagina></item_piepagina>
         
     </footer>
@@ -135,7 +134,6 @@
         var app = new Vue({
             el: '#app',
             data: {
-   
                 configuracionPagina:
                 {
                     marca: "MegaDron",
@@ -153,15 +151,9 @@
                         }
                     ]
                 },
-                producto:
-                {
-                    id:1,
-                    imagen: "https://cdn.shopify.com/s/files/1/0643/3210/3904/products/S0ffdbdf458fa4813906523b51fccb02bK.jpg?v=1670337974",
-                    nombre: "Dron LU3 MAX GPS 8K HD",
-                    descripcion: "Dron LU3 MAX GPS 8K HD profesional con <b>cámara Dual</b>, cardán autoestabilizador, Motor sin escobillas para evitar obstáculos, cuadricóptero plegable",
-                    precio:"620",
-                    colores: ["red", "blue", "black", "yellow"]
-                },
+                getproducto:[],
+                listaProductos:[],
+
                 productosRelacionados:
                 [
                     {
@@ -219,12 +211,35 @@
                         "Color: "+app.pedido.color+"\n"
                     )
                     
+                },
+                getProductos(){
+                    axios
+                    .get('http://localhost:5000/Productos')
+                    .then(response => {
+                        console.log(response);
+                        this.listaProductos = response.data;
+                    })
+                    .catch(e => console.log(e));
+                },
+                getProducto(id){
+                    axios
+                    .get('http://localhost:5000/Productos/'+id)
+                    .then(response => {
+                        console.log(response);
+                        this.getproducto = response.data;
+                    })
+                    .catch(e => console.log(e));
                 }
             },
             computed:{
                 desabilitar: function(){
                     return (this.pedido.cantidad == 0) || (this.pedido.color == null) 
                 }
+            },
+            mounted() {
+                //llamamos al metodo
+                this.getProductos()
+                //this.getProducto(1)
             },
         })
     </script>
